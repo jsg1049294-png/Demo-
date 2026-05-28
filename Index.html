@@ -1,231 +1,282 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GlobalChat</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26;
-    --accent: #00ff88; --accent2: #ff3366;
-    --text: #e8e8f0; --border: #2a2a40;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Syne',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
-  .chat-screen { display:flex; flex-direction:column; height:100vh; }
-  .chat-header { background:var(--surface); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
-  .messages-container {
-    flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px;
-    background:var(--bg); max-width:680px; margin:0 auto; width:100%; scroll-behavior:smooth;
-  }
-  .msg { max-width:82%; }
-  .msg.own { align-self:flex-end; }
-  .msg.other { align-self:flex-start; }
-  .msg-bubble {
-    padding:13px 17px; border-radius:18px; font-size:15.5px; line-height:1.45; word-break:break-word;
-  }
-  .msg.other .msg-bubble { background:var(--surface2); border:1px solid var(--border); border-bottom-left-radius:6px; }
-  .msg.own .msg-bubble { background:linear-gradient(135deg,#1a3a2a,#0f2a1a); border:1px solid rgba(0,255,136,0.4); border-bottom-right-radius:6px; }
-  .chat-input-area {
-    background:var(--surface); border-top:1px solid var(--border); padding:12px 16px;
-    display:flex; gap:10px; max-width:680px; margin:0 auto; width:100%;
-  }
-  .chat-input {
-    flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:16px;
-    color:var(--text); padding:14px 18px; font-size:16px; resize:none; max-height:160px;
-  }
-  .send-btn {
-    background:var(--accent); color:#000; width:52px; height:52px; border-radius:16px; font-size:22px;
-  }
-  #iframe-container {
-    position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:100; display:none; flex-direction:column;
-  }
-  .iframe-header {
-    padding:12px 16px; background:#111; display:flex; justify-content:space-between; align-items:center;
-  }
-  #main-iframe { flex:1; border:none; width:100%; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpielePortal - 5 Kategorien</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #fff;
+    }
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #6b00ff, #00d4ff);
+    }
+    h1 { font-size: 2.8rem; margin-bottom: 8px; }
+
+    #search {
+      width: 90%;
+      max-width: 600px;
+      padding: 14px 20px;
+      margin: 20px auto;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      display: block;
+    }
+
+    #theme-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 15px;
+      background: #1a1a2e;
+    }
+    .theme-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      background: #16213e;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .theme-btn.active, .theme-btn:hover {
+      background: #00d4ff;
+      color: black;
+    }
+
+    #games-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      padding: 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .game-card {
+      background: #16213e;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+    .game-card:hover { transform: scale(1.08); }
+    .game-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+    .game-info { padding: 15px; }
+    .game-info h3 { margin-bottom: 6px; }
+    .play-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: #00ff88;
+      color: black;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    /* Vollbild */
+    #game-container {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100vh;
+      background: #000;
+      z-index: 1000;
+      flex-direction: column;
+    }
+    #game-header {
+      background: rgba(0,0,0,0.9);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #back-btn {
+      padding: 10px 22px;
+      background: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    #game-title { font-size: 1.4rem; }
+    #game-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
 
-<div class="chat-screen" id="chat-screen">
-  <div class="chat-header">
-    <div><strong>GlobalChat</strong> <span style="color:#00ff88">● Live</span></div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <span id="display-user"></span>
-      <button onclick="logout()" style="background:#222; border:none; color:#aaa; padding:6px 12px; border-radius:8px; font-size:13px;">Abmelden</button>
-      <button id="admin-clear" onclick="confirmClearAll()" style="display:none; background:#ff3366; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:13px;">Alles löschen</button>
+  <header>
+    <h1>🎮 SpielePortal</h1>
+    <p>5 Kategorien • Viele HTML5 Spiele</p>
+  </header>
+
+  <input type="text" id="search" placeholder="🔍 Spiele suchen..." onkeyup="filterGames()">
+
+  <nav id="theme-nav"></nav>
+
+  <div id="games-container"></div>
+
+  <!-- Vollbild Container -->
+  <div id="game-container">
+    <div id="game-header">
+      <button id="back-btn">← Zurück</button>
+      <div id="game-title"></div>
+      <div></div>
     </div>
+    <iframe id="game-frame" allowfullscreen></iframe>
   </div>
-  <div class="messages-container" id="messages"></div>
-  <div class="chat-input-area">
-    <textarea id="chat-input" class="chat-input" placeholder="Nachricht... (/my | /sr 1-7 | /ki)" onkeydown="handleKey(event)"></textarea>
-    <button class="send-btn" onclick="sendMessage()">➤</button>
-  </div>
-</div>
 
-<!-- iFrame Overlay -->
-<div id="iframe-container">
-  <div class="iframe-header">
-    <span id="iframe-title">KI Chat</span>
-    <button onclick="closeIframe()" style="background:#ff3366; color:white; border:none; padding:8px 16px; border-radius:8px;">Schließen ✕</button>
-  </div>
-  <iframe id="main-iframe" src=""></iframe>
-</div>
+  <script>
+    // ====================== 5 KATEGORIEN + SPIELE ======================
+    const games = [
+      // === ARCADE ===
+      { title: "Flappy Bird", theme: "Arcade", thumbnail: "https://picsum.photos/id/1015/300/160", url: "https://flappybird.io" },
+      { title: "Snake", theme: "Arcade", thumbnail: "https://picsum.photos/id/237/300/160", url: "https://www.google.com/fbx?fbx=snake" },
+      { title: "Pac-Man", theme: "Arcade", thumbnail: "https://picsum.photos/id/180/300/160", url: "https://freepacman.org" },
+      { title: "Subway Surfers", theme: "Arcade", thumbnail: "https://picsum.photos/id/866/300/160", url: "https://poki.com/en/g/subway-surfers" },
+      { title: "Temple Run", theme: "Arcade", thumbnail: "https://picsum.photos/id/201/300/160", url: "https://poki.com/en/g/temple-run-2" },
+      { title: "Geometry Dash", theme: "Arcade", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://poki.com/en/g/geometry-dash" },
+      { title: "Stack Ball", theme: "Arcade", thumbnail: "https://picsum.photos/id/251/300/160", url: "https://poki.com/en/g/stack-ball" },
+      { title: "Helix Jump", theme: "Arcade", thumbnail: "https://picsum.photos/id/870/300/160", url: "https://poki.com/en/g/helix-jump" },
+      { title: "Color Switch", theme: "Arcade", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://poki.com/en/g/color-switch" },
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script>
-// === Firebase Config ===
-const firebaseConfig = {
-  apiKey: "AIzaSyBYcwvQazKQxBQjdWqn4wLY-3SA3A4scng",
-  authDomain: "globalchat-2026.firebaseapp.com",
-  projectId: "globalchat-2026",
-  storageBucket: "globalchat-2026.firebasestorage.app",
-  messagingSenderId: "510911567824",
-  appId: "1:510911567824:web:d95c7e0c5a88501fa3cbd5"
-};
+      // === PUZZLE ===
+      { title: "2048", theme: "Puzzle", thumbnail: "https://picsum.photos/id/201/300/160", url: "https://play2048.co" },
+      { title: "Tetris", theme: "Puzzle", thumbnail: "https://picsum.photos/id/180/300/160", url: "https://tetris.com/play-tetris" },
+      { title: "Sudoku", theme: "Puzzle", thumbnail: "https://picsum.photos/id/251/300/160", url: "https://poki.com/en/g/sudoku" },
+      { title: "Candy Crush", theme: "Puzzle", thumbnail: "https://picsum.photos/id/866/300/160", url: "https://poki.com/en/g/candy-crush-saga" },
+      { title: "Wordle", theme: "Puzzle", thumbnail: "https://picsum.photos/id/1015/300/160", url: "https://www.nytimes.com/games/wordle/index.html" },
+      { title: "Bubble Shooter", theme: "Puzzle", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://poki.com/en/g/bubble-shooter" },
+      { title: "Mahjong", theme: "Puzzle", thumbnail: "https://picsum.photos/id/237/300/160", url: "https://poki.com/en/g/mahjong" },
+      { title: "Memory Cards", theme: "Puzzle", thumbnail: "https://picsum.photos/id/870/300/160", url: "https://poki.com/en/g/memory" },
+      { title: "Flow Free", theme: "Puzzle", thumbnail: "https://picsum.photos/id/201/300/160", url: "https://poki.com/en/g/flow-free" },
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+      // === RACING ===
+      { title: "Highway Racer", theme: "Racing", thumbnail: "https://picsum.photos/id/1074/300/160", url: "https://www.crazygames.com/game/highway-racer" },
+      { title: "Drift Racing", theme: "Racing", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://poki.com/en/g/drift-racing" },
+      { title: "Moto X3M", theme: "Racing", thumbnail: "https://picsum.photos/id/180/300/160", url: "https://poki.com/en/g/moto-x3m" },
+      { title: "Car Parking", theme: "Racing", thumbnail: "https://picsum.photos/id/251/300/160", url: "https://poki.com/en/g/car-parking" },
+      { title: "Crazy Taxi", theme: "Racing", thumbnail: "https://picsum.photos/id/866/300/160", url: "https://poki.com/en/g/crazy-taxi" },
 
-let currentUser = "", isAdmin = false;
+      // === ACTION ===
+      { title: "Stickman Hook", theme: "Action", thumbnail: "https://picsum.photos/id/1015/300/160", url: "https://poki.com/en/g/stickman-hook" },
+      { title: "Rooftop Snipers", theme: "Action", thumbnail: "https://picsum.photos/id/237/300/160", url: "https://poki.com/en/g/rooftop-snipers" },
+      { title: "Getaway Shootout", theme: "Action", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://poki.com/en/g/getaway-shootout" },
+      { title: "Sniper 3D", theme: "Action", thumbnail: "https://picsum.photos/id/201/300/160", url: "https://poki.com/en/g/sniper-3d" },
+      { title: "Tanks.io", theme: "Action", thumbnail: "https://picsum.photos/id/870/300/160", url: "https://poki.com/en/g/tanks-io" },
+      { title: "Krunker.io", theme: "Action", thumbnail: "https://picsum.photos/id/180/300/160", url: "https://krunker.io" },
 
-// === YouTube Videos ===
-const youtubeVideos = {
-  1: { id: "q7c05ejJ6Sw", title: "YouTube Video 1" },
-  2: { id: "Aq5WXmQQooo?si=7QNoeb33c4GFyz5e", title: "Rick Astley" },
-  3: { id: "zG9nSL2jbyw", title: "Video 3" },
-  4: { id: "VqPgrNYPHU8", title: "Video 4" },
-  5: { id: "_i6rYe4HLPw", title: "Video 5" },
-  6: { id: "o_4PPHaDum4", title: "AURA" },
-  7: { id: "oddleN98bgE?si=h02u-vqjHoDx-djW", title: "herr schlott " }
-};
+      // === ADVENTURE ===
+      { title: "Mario", theme: "Adventure", thumbnail: "https://picsum.photos/id/1074/300/160", url: "https://supermarioemulator.com" },
+      { title: "Among Us", theme: "Adventure", thumbnail: "https://picsum.photos/id/866/300/160", url: "https://poki.com/en/g/among-us" },
+      { title: "Sonic", theme: "Adventure", thumbnail: "https://picsum.photos/id/251/300/160", url: "https://poki.com/en/g/sonic" },
+      { title: "Minecraft Classic", theme: "Adventure", thumbnail: "https://picsum.photos/id/133/300/160", url: "https://classic.minecraft.net" },
+      { title: "Happy Wheels", theme: "Adventure", thumbnail: "https://picsum.photos/id/237/300/160", url: "https://poki.com/en/g/happy-wheels" },
+      { title: "Bad Ice Cream", theme: "Adventure", thumbnail: "https://picsum.photos/id/201/300/160", url: "https://poki.com/en/g/bad-ice-cream" }
+    ];
 
-window.onload = () => {
-    let attempts = 0;
-    const maxAttempts = 3;
+    const themes = ["Arcade", "Puzzle", "Racing", "Action", "Adventure"];
 
-    function askForPin() {
-        const pin = prompt("PIN eingeben:");
+    let currentFilter = "all";
 
-        if (!pin) {
-            alert("PIN ist erforderlich!");
-            location.reload();
-            return;
-        }
+    function renderThemes() {
+      const nav = document.getElementById('theme-nav');
+      nav.innerHTML = `<button class="theme-btn active" data-theme="all">Alle Spiele</button>`;
 
-        if (pin === "6969") {
-            isAdmin = false;
-            currentUser = prompt("Dein Name:") || "User" + Math.floor(Math.random()*1000);
-            document.getElementById("display-user").textContent = currentUser;
-            document.getElementById("admin-clear").style.display = "none";
-            initChat();
+      themes.forEach(theme => {
+        const btn = document.createElement('button');
+        btn.className = 'theme-btn';
+        btn.textContent = theme;
+        btn.dataset.theme = theme;
+        nav.appendChild(btn);
+      });
 
-        } else if (pin === "6214" || pin === "4000") {
-            isAdmin = true;
-            currentUser = "Admin";
-            document.getElementById("display-user").textContent = "👑 Admin";
-            document.getElementById("admin-clear").style.display = "block";
-            initChat();
-
-        } else {
-            attempts++;
-            if (attempts >= maxAttempts) {
-                alert("Zu viele falsche Versuche. Zugriff verweigert.");
-                document.body.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0f;color:#ff3366;font-size:24px;text-align:center;padding:20px;"><div><h1>🚫 Zugriff verweigert</h1><p>Falscher PIN.</p><button onclick="location.reload()" style="margin-top:20px;padding:12px 24px;font-size:16px;">Neu versuchen</button></div></div>`;
-            } else {
-                alert(`Falscher PIN! Versuch ${attempts}/${maxAttempts}`);
-                askForPin();
-            }
-        }
+      nav.addEventListener('click', e => {
+        if (!e.target.classList.contains('theme-btn')) return;
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.dataset.theme;
+        filterGames();
+      });
     }
-    askForPin();
-};
 
-async function initChat() {
-  db.collection("messages").orderBy("time", "asc").onSnapshot(snap => {
-    const container = document.getElementById("messages");
-    container.innerHTML = "";
-    snap.forEach(doc => {
-      const m = doc.data();
-      const div = document.createElement("div");
-      div.className = `msg ${m.user === currentUser ? "own" : "other"}`;
-      const time = new Date(m.time).toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      div.innerHTML = `<div style="font-size:12.5px; opacity:0.75; margin-bottom:4px;">${m.user} • ${time}</div><div class="msg-bubble">${m.text}</div>`;
-      container.appendChild(div);
+    function renderGames(filteredGames) {
+      const container = document.getElementById('games-container');
+      container.innerHTML = '';
+
+      filteredGames.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          <img src="${game.thumbnail}" alt="${game.title}">
+          <div class="game-info">
+            <h3>${game.title}</h3>
+            <p>${game.theme}</p>
+            <a class="play-btn">Jetzt spielen</a>
+          </div>
+        `;
+        card.onclick = () => playGame(game);
+        container.appendChild(card);
+      });
+    }
+
+    function playGame(game) {
+      document.getElementById('games-container').style.display = 'none';
+      const container = document.getElementById('game-container');
+      const frame = document.getElementById('game-frame');
+      const titleEl = document.getElementById('game-title');
+
+      titleEl.textContent = game.title;
+      frame.src = game.url;
+      container.style.display = 'flex';
+    }
+
+    function closeGame() {
+      document.getElementById('game-container').style.display = 'none';
+      document.getElementById('games-container').style.display = 'grid';
+      document.getElementById('game-frame').src = '';
+    }
+
+    function filterGames() {
+      const searchTerm = document.getElementById('search').value.toLowerCase();
+      let filtered = games;
+
+      if (currentFilter !== "all") {
+        filtered = filtered.filter(g => g.theme === currentFilter);
+      }
+      if (searchTerm) {
+        filtered = filtered.filter(g => g.title.toLowerCase().includes(searchTerm));
+      }
+
+      renderGames(filtered);
+    }
+
+    // Zurück-Button + ESC
+    document.getElementById('back-btn').addEventListener('click', closeGame);
+    document.addEventListener('keydown', e => {
+      if (e.key === "Escape") closeGame();
     });
-    container.scrollTop = container.scrollHeight;
-  });
-}
 
-async function sendMessage() {
-  const input = document.getElementById("chat-input");
-  let text = input.value.trim();
-  if (!text) return;
-
-  const lower = text.toLowerCase().trim();
-
-  if (lower === "/my") {
-    openIframe("https://www.myinstants.com/de/index/de/", "My Instants");
-    input.value = "";
-    return;
-  }
-
-  if (lower.startsWith("/sr")) {
-    const parts = text.split(/\s+/);
-    let num = 1;
-    if (parts.length > 1) {
-      const parsed = parseInt(parts[1]);
-      if (!isNaN(parsed) && youtubeVideos[parsed]) num = parsed;
-    }
-    const video = youtubeVideos[num];
-    openIframe(`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`, video.title);
-    input.value = "";
-    return;
-  }
-
-  if (lower === "/ki") {
-    openIframe("ki.html", "KI Assistant");
-    input.value = "";
-    return;
-  }
-
-  // Normale Nachricht
-  await db.collection("messages").add({
-    user: currentUser,
-    text: text,
-    time: Date.now()
-  });
-  input.value = "";
-}
-
-function openIframe(url, title) {
-  document.getElementById("iframe-title").textContent = title;
-  document.getElementById("main-iframe").src = url;
-  document.getElementById("iframe-container").style.display = "flex";
-}
-
-function closeIframe() {
-  document.getElementById("iframe-container").style.display = "none";
-  document.getElementById("main-iframe").src = "";
-}
-
-function handleKey(e) {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-
-function logout() { location.reload(); }
-
-function confirmClearAll() {
-  if (confirm("Wirklich ALLE Nachrichten löschen?")) {
-    db.collection("messages").get().then(s => s.forEach(d => d.ref.delete()));
-  }
-}
-</script>
+    // Start
+    renderThemes();
+    renderGames(games);
+  </script>
 </body>
 </html>
